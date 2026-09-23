@@ -1,84 +1,113 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const TactileDeckApp());
+  runApp(const ViralStudioApp());
 }
 
-class TactileDeckApp extends StatefulWidget {
-  const TactileDeckApp({super.key});
+// ============================================================
+// ROOT APP - Manages global Light/Dark theme state
+// ============================================================
+
+class ViralStudioApp extends StatefulWidget {
+  const ViralStudioApp({super.key});
 
   @override
-  State<TactileDeckApp> createState() => _TactileDeckAppState();
+  State<ViralStudioApp> createState() => _ViralStudioAppState();
 }
 
-class _TactileDeckAppState extends State<TactileDeckApp> {
+class _ViralStudioAppState extends State<ViralStudioApp> {
   bool isDarkMode = true;
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Cyber-Tactile Control Studio',
+      title: 'Viral Content Studio',
       debugShowCheckedModeBanner: false,
       theme: isDarkMode
           ? ThemeData.dark(useMaterial3: true)
           : ThemeData.light(useMaterial3: true),
-      home: ControlDeckScreen(
+      home: ViralContentScreen(
         isDark: isDarkMode,
-        onToggleTheme: () => setState(() => isDarkMode = !isDarkMode),
+        onToggleTheme: () {
+          setState(() {
+            isDarkMode = !isDarkMode;
+          });
+        },
       ),
     );
   }
 }
 
-class ControlDeckScreen extends StatefulWidget {
+// ============================================================
+// MAIN SCREEN - Owns the engagement state
+// ============================================================
+
+class ViralContentScreen extends StatefulWidget {
   final bool isDark;
   final VoidCallback onToggleTheme;
 
-  const ControlDeckScreen({
+  const ViralContentScreen({
     super.key,
     required this.isDark,
     required this.onToggleTheme,
   });
 
   @override
-  State<ControlDeckScreen> createState() => _ControlDeckScreenState();
+  State<ViralContentScreen> createState() => _ViralContentScreenState();
 }
 
-class _ControlDeckScreenState extends State<ControlDeckScreen> {
-  int totalTaps = 0;
-  double powerLevel = 65.0;
-  String systemStatus = "READY";
+class _ViralContentScreenState extends State<ViralContentScreen> {
+  int likes = 0;
+  int comments = 0;
+  int saves = 0;
+  int shares = 0;
+  int streak = 0;
 
-  void _triggerAction(String actionName) {
+  bool isTrending = false;
+
+  String lastAction = "NONE";
+
+  int get engagementScore {
+    return likes + (comments * 2) + (saves * 2) + (shares * 3);
+  }
+
+  void _performAction(String action) {
     setState(() {
-      totalTaps++;
-      systemStatus = "$actionName ACTIVATED";
+      if (action == "LIKE") {
+        likes++;
+      } else if (action == "COMMENT") {
+        comments++;
+      } else if (action == "SAVE") {
+        saves++;
+      } else if (action == "SHARE") {
+        shares++;
+      }
+
+      streak++;
+      lastAction = action;
+
+      // Viral Content Studio rule:
+      // Trending unlocks at 20 engagement points.
+      isTrending = engagementScore >= 20;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // Milestone 2:
-    // Change the background when power calibration goes above 80%.
-    final bool isOverload = powerLevel > 80;
-
-    final screenBg = isOverload
+    final backgroundColor = isTrending
         ? (widget.isDark
-              ? const Color(0xFF3A1712)
-              : const Color(0xFFFBE6DF))
+              ? const Color(0xFF351525)
+              : const Color(0xFFFFE5EE))
         : (widget.isDark
               ? const Color(0xFF1E1F29)
               : const Color(0xFFE0E5EC));
 
-    final cardBg = widget.isDark
-        ? const Color(0xFF282A36)
-        : Colors.white;
-
     return Scaffold(
-      backgroundColor: screenBg,
+      backgroundColor: backgroundColor,
+
       appBar: AppBar(
         title: const Text(
-          "TACTILE CONTROL STUDIO",
+          "VIRAL CONTENT STUDIO",
           style: TextStyle(
             fontWeight: FontWeight.bold,
             letterSpacing: 1.2,
@@ -92,165 +121,126 @@ class _ControlDeckScreenState extends State<ControlDeckScreen> {
             icon: Icon(
               widget.isDark ? Icons.light_mode : Icons.dark_mode,
             ),
-            tooltip: 'Toggle Theme',
+            tooltip: "Toggle Theme",
             onPressed: widget.onToggleTheme,
           ),
         ],
       ),
+
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(
-          horizontal: 24.0,
-          vertical: 16.0,
+          horizontal: 24,
+          vertical: 16,
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Status dashboard
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: cardBg,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(
-                      widget.isDark ? 0.3 : 0.08,
-                    ),
-                    blurRadius: 15,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  Column(
-                    children: [
-                      const Text(
-                        "TOTAL TAPS",
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        "$totalTaps",
-                        style: const TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
+            // ==================================================
+            // STATELESS WIDGET #1
+            // ==================================================
 
-                  Container(
-                    width: 1,
-                    height: 40,
-                    color: Colors.grey.withOpacity(0.3),
-                  ),
-
-                  Column(
-                    children: [
-                      const Text(
-                        "ENERGY LEVEL",
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        "${powerLevel.toInt()}%",
-                        style: const TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blueAccent,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+            EngagementMetrics(
+              engagementScore: engagementScore,
+              streak: streak,
+              isDark: widget.isDark,
             ),
 
             const SizedBox(height: 16),
 
-            Text(
-              "STATUS: $systemStatus",
-              style: TextStyle(
-                fontFamily: 'monospace',
-                fontWeight: FontWeight.w600,
-                color: widget.isDark
-                    ? Colors.tealAccent
-                    : Colors.teal.shade700,
-              ),
+            // ==================================================
+            // STATELESS WIDGET #2
+            // ==================================================
+
+            StudioStatus(
+              lastAction: lastAction,
+              isTrending: isTrending,
+              isDark: widget.isDark,
             ),
 
             const SizedBox(height: 28),
 
-            // Milestone 1:
-            // Personalized AI Operations Control Center.
+            // ==================================================
+            // INTERACTIVE BUTTONS
+            // ==================================================
+
             Wrap(
               spacing: 20,
               runSpacing: 20,
               alignment: WrapAlignment.center,
               children: [
                 TactileButton(
-                  icon: Icons.analytics,
-                  label: "ANALYZE",
-                  accentColor: Colors.cyanAccent,
+                  icon: Icons.favorite,
+                  label: "LIKE +1",
+                  accentColor: Colors.pinkAccent,
                   isDark: widget.isDark,
-                  onPressed: () => _triggerAction("DATA ANALYSIS"),
+                  onPressed: () => _performAction("LIKE"),
                 ),
+
                 TactileButton(
-                  icon: Icons.cloud_upload,
-                  label: "DEPLOY",
+                  icon: Icons.comment,
+                  label: "COMMENT +2",
+                  accentColor: Colors.blueAccent,
+                  isDark: widget.isDark,
+                  onPressed: () => _performAction("COMMENT"),
+                ),
+
+                TactileButton(
+                  icon: Icons.bookmark,
+                  label: "SAVE +2",
+                  accentColor: Colors.amberAccent,
+                  isDark: widget.isDark,
+                  onPressed: () => _performAction("SAVE"),
+                ),
+
+                TactileButton(
+                  icon: Icons.share,
+                  label: "SHARE +3",
                   accentColor: Colors.greenAccent,
                   isDark: widget.isDark,
-                  onPressed: () => _triggerAction("MODEL DEPLOYMENT"),
-                ),
-                TactileButton(
-                  icon: Icons.monitor_heart,
-                  label: "MONITOR",
-                  accentColor: Colors.purpleAccent,
-                  isDark: widget.isDark,
-                  onPressed: () => _triggerAction("SYSTEM MONITORING"),
-                ),
-                TactileButton(
-                  icon: Icons.warning_amber,
-                  label: "ALERT",
-                  accentColor: Colors.orangeAccent,
-                  isDark: widget.isDark,
-                  onPressed: () => _triggerAction("INCIDENT ALERT"),
+                  onPressed: () => _performAction("SHARE"),
                 ),
               ],
             ),
 
-            const SizedBox(height: 36),
+            const SizedBox(height: 30),
 
+            // Individual counters
+            EngagementBreakdown(
+              likes: likes,
+              comments: comments,
+              saves: saves,
+              shares: shares,
+            ),
+
+            const SizedBox(height: 24),
+
+            // Dynamic meter
             Text(
-              "Power Calibration: ${powerLevel.toInt()}%",
+              "Trending Progress: $engagementScore / 20",
               style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
+                fontWeight: FontWeight.bold,
               ),
             ),
 
-            Slider(
-              value: powerLevel,
-              min: 0,
-              max: 100,
-              activeColor: Colors.blueAccent,
-              inactiveColor: Colors.grey.withOpacity(0.3),
-              onChanged: (newVal) {
-                setState(() {
-                  powerLevel = newVal;
-                });
-              },
+            const SizedBox(height: 10),
+
+            LinearProgressIndicator(
+              value: (engagementScore / 20).clamp(0.0, 1.0),
+              minHeight: 10,
+              borderRadius: BorderRadius.circular(10),
+            ),
+
+            const SizedBox(height: 10),
+
+            Text(
+              isTrending
+                  ? "Target reached!"
+                  : "${20 - engagementScore} points until trending",
+              style: TextStyle(
+                fontWeight: FontWeight.w500,
+                color: isTrending
+                    ? Colors.pinkAccent
+                    : Colors.grey,
+              ),
             ),
           ],
         ),
@@ -259,7 +249,195 @@ class _ControlDeckScreenState extends State<ControlDeckScreen> {
   }
 }
 
-// Reusable tactile button
+// ============================================================
+// STATELESS WIDGET #1 - ENGAGEMENT METRICS
+// ============================================================
+//
+// This widget only displays data given by the parent.
+// It does not own or change state.
+//
+
+class EngagementMetrics extends StatelessWidget {
+  final int engagementScore;
+  final int streak;
+  final bool isDark;
+
+  const EngagementMetrics({
+    super.key,
+    required this.engagementScore,
+    required this.streak,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cardColor = isDark
+        ? const Color(0xFF282A36)
+        : Colors.white;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(
+              isDark ? 0.3 : 0.08,
+            ),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          Column(
+            children: [
+              const Text(
+                "ENGAGEMENT",
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                "$engagementScore",
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+
+          Container(
+            width: 1,
+            height: 40,
+            color: Colors.grey.withOpacity(0.3),
+          ),
+
+          Column(
+            children: [
+              const Text(
+                "STREAK",
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                "$streak",
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.pinkAccent,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================================
+// STATELESS WIDGET #2 - STATUS DISPLAY
+// ============================================================
+
+class StudioStatus extends StatelessWidget {
+  final String lastAction;
+  final bool isTrending;
+  final bool isDark;
+
+  const StudioStatus({
+    super.key,
+    required this.lastAction,
+    required this.isTrending,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          "LAST ACTION: $lastAction",
+          style: TextStyle(
+            fontFamily: "monospace",
+            fontWeight: FontWeight.w600,
+            color: isDark
+                ? Colors.cyanAccent
+                : Colors.blue.shade700,
+          ),
+        ),
+
+        if (isTrending) ...[
+          const SizedBox(height: 10),
+          const Text(
+            "TRENDING 🔥",
+            style: TextStyle(
+              color: Colors.pinkAccent,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.5,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+// ============================================================
+// ADDITIONAL STATELESS WIDGET - ENGAGEMENT BREAKDOWN
+// ============================================================
+
+class EngagementBreakdown extends StatelessWidget {
+  final int likes;
+  final int comments;
+  final int saves;
+  final int shares;
+
+  const EngagementBreakdown({
+    super.key,
+    required this.likes,
+    required this.comments,
+    required this.saves,
+    required this.shares,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 18,
+      runSpacing: 10,
+      alignment: WrapAlignment.center,
+      children: [
+        Text("❤️ Likes: $likes"),
+        Text("💬 Comments: $comments"),
+        Text("🔖 Saves: $saves"),
+        Text("🚀 Shares: $shares"),
+      ],
+    );
+  }
+}
+
+// ============================================================
+// CUSTOM STATEFUL WIDGET - TACTILE BUTTON
+// ============================================================
+//
+// Stateful because every individual button must remember
+// whether it is currently being pressed.
+//
+
 class TactileButton extends StatefulWidget {
   final IconData icon;
   final String label;
@@ -281,7 +459,6 @@ class TactileButton extends StatefulWidget {
 }
 
 class _TactileButtonState extends State<TactileButton> {
-  // Each button keeps its own pressed state.
   bool isPressed = false;
 
   @override
@@ -299,12 +476,14 @@ class _TactileButtonState extends State<TactileButton> {
         : Colors.white;
 
     return GestureDetector(
+      // User begins pressing -> visual depression
       onTapDown: (_) {
         setState(() {
           isPressed = true;
         });
       },
 
+      // User releases -> restore button and perform action
       onTapUp: (_) {
         setState(() {
           isPressed = false;
@@ -313,6 +492,7 @@ class _TactileButtonState extends State<TactileButton> {
         widget.onPressed();
       },
 
+      // Gesture cancelled -> restore button
       onTapCancel: () {
         setState(() {
           isPressed = false;
@@ -326,8 +506,6 @@ class _TactileButtonState extends State<TactileButton> {
         decoration: BoxDecoration(
           color: baseColor,
           borderRadius: BorderRadius.circular(24),
-
-          // Original neomorphic shadow direction restored.
           boxShadow: isPressed
               ? [
                   BoxShadow(
@@ -354,7 +532,6 @@ class _TactileButtonState extends State<TactileButton> {
                   ),
                 ],
         ),
-
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -375,12 +552,12 @@ class _TactileButtonState extends State<TactileButton> {
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 12,
-                letterSpacing: 1.1,
+                letterSpacing: 0.8,
                 color: isPressed
                     ? widget.accentColor
                     : (widget.isDark
-                          ? Colors.white54
-                          : Colors.black54),
+                          ? Colors.white70
+                          : Colors.black87),
               ),
             ),
           ],
